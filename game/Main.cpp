@@ -117,7 +117,7 @@ class Game : public MyApp::Scene
 				if (init_data[i][j] == 2) white_counter += 1;
 			}
 		}
-		Print << U"黒：" << white_counter << U"白：" << black_counter;
+		Print << U"黒：" << black_counter << U"白：" << white_counter;
 	}
 	//打った手がルール的にあっているかを確認する
 	//playerが(p,q)のマスに石が置けるかどうかを返す
@@ -197,6 +197,7 @@ class Game : public MyApp::Scene
 	int32 player = 1;
 	int32 posi_x = 0;
 	int32 posi_y = 0;
+	int32 count_board = 0;
 	Game(const InitData& init)
 		:IScene(init)
 	{
@@ -221,9 +222,6 @@ class Game : public MyApp::Scene
 				{
 					posi_x = Cursor::Pos().x / Cellsize;
 					posi_y = Cursor::Pos().y / Cellsize;
-					//Print << Cursor::Pos();
-					//Print << posi_x;
-					//Print << posi_y;
 					if (check(init_data, player, posi_x, posi_y))
 					{
 
@@ -232,6 +230,7 @@ class Game : public MyApp::Scene
 						set_board(init_data, player, Cursor::Pos().x / Cellsize, Cursor::Pos().y / Cellsize);
 						//石の数を表示
 						game_counter(init_data);
+						count_board++;
 						//プレイヤーチェンジ
 						player = chara(player);
 					}
@@ -243,17 +242,24 @@ class Game : public MyApp::Scene
 				}
 			}
 		}
+		if (count_board == 96)
+		{
+			System::Exit();
+		}
 	}
 	void draw() const override
 	{
+		const Vec2 s(560, 10);
 		print_fence();
 		print_cells();
+		FontAsset(U"Menu")(U"ターン:",count_board).drawAt(s, ColorF(0.25));
 	}
 };
 
 
 void Main()
 {
+	Game game();
 	FontAsset::Register(U"Title", 100, Typeface::Black);
 	FontAsset::Register(U"Menu", 30, Typeface::Regular);
 	Scene::SetBackground(Palette::Green);
@@ -262,7 +268,8 @@ void Main()
 	manager.add<Title>(State::Title);
 	manager.add<Game>(State::Game);
 	constexpr Point offset(175, 30);
-	//Board board;
+	const Audio audio(U"C:/Users/81806/Desktop/game/game/natsuyasuminotanken.mp3", Arg::loop = true);
+	audio.play();
 	while (System::Update())
 	{
 		Transformer2D tr(Mat3x2::Translate(offset), true);
